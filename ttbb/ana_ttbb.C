@@ -217,24 +217,32 @@ void ana_ttbb(){
                          .Define("jet1_phi", "jet_phi[sortjets[0]]")
                          .Define("jet1_e", "jet_e[sortjets[0]]")
                          .Define("jet1_btag", "jet_deepJet[sortjets[0]]")
+                         .Define("jet1_CvsB", "jet_deepJetCvsB[sortjets[0]]")
+                         .Define("jet1_CvsL", "jet_deepJetCvsL[sortjets[0]]")
                          //jet2
                          .Define("jet2_pt", "jet_pt[sortjets[1]]")
                          .Define("jet2_eta", "jet_eta[sortjets[1]]")
-                         .Define("jet2_phi", "jet_phi[sortjets[0]]")
+                         .Define("jet2_phi", "jet_phi[sortjets[1]]")
                          .Define("jet2_e", "jet_e[sortjets[1]]")
                          .Define("jet2_btag", "jet_deepJet[sortjets[1]]")
+                         .Define("jet2_CvsB", "jet_deepJetCvsB[sortjets[1]]")
+                         .Define("jet2_CvsL", "jet_deepJetCvsL[sortjets[1]]")
                          //jet3
                          .Define("jet3_pt", "jet_pt[sortjets[2]]")
                          .Define("jet3_eta", "jet_eta[sortjets[2]]")
-                         .Define("jet3_phi", "jet_phi[sortjets[0]]")
+                         .Define("jet3_phi", "jet_phi[sortjets[2]]")
                          .Define("jet3_e", "jet_e[sortjets[2]]")
                          .Define("jet3_btag", "jet_deepJet[sortjets[2]]")
+                         .Define("jet3_CvsB", "jet_deepJetCvsB[sortjets[2]]")
+                         .Define("jet3_CvsL", "jet_deepJetCvsL[sortjets[2]]")
                          //jet4
                          .Define("jet4_pt", "jet_pt[sortjets[3]]")
                          .Define("jet4_eta", "jet_eta[sortjets[3]]")
-                         .Define("jet4_phi", "jet_phi[sortjets[0]]")
+                         .Define("jet4_phi", "jet_phi[sortjets[3]]")
                          .Define("jet4_e", "jet_e[sortjets[3]]")
                          .Define("jet4_btag", "jet_deepJet[sortjets[3]]")
+                         .Define("jet4_CvsB", "jet_deepJetCvsB[sortjets[3]]")
+                         .Define("jet4_CvsL", "jet_deepJetCvsL[sortjets[3]]")
                          //deltaR between jets
                          .Define("deltaR_12", deltaR, {"jet1_pt", "jet1_eta", "jet1_phi", "jet1_e", "jet2_pt", "jet2_eta", "jet2_phi", "jet2_e"})
                          .Define("deltaR_13", deltaR, {"jet1_pt", "jet1_eta", "jet1_phi", "jet1_e", "jet3_pt", "jet3_eta", "jet3_phi", "jet3_e"})
@@ -274,7 +282,7 @@ void ana_ttbb(){
   ROOT::RDF::RSnapshotOptions opts;
   opts.fMode = "UPDATE";
   
-  df_bjet.Snapshot("dnn_input", "ttbb_invmasstest.root", {"signal", "category", "jet1_pt", "jet1_eta", "jet1_btag", "jet1_e", "jet2_pt", "jet2_eta", "jet2_btag", "jet2_e", "jet3_pt", "jet3_eta", "jet3_btag", "jet3_e", "jet4_pt", "jet4_eta", "jet4_btag", "jet4_e", "deltaR_12", "deltaR_13", "deltaR_14", "deltaR_23", "deltaR_24", "deltaR_34", "lepton_pt", "lepton_eta", "lepton_e", "deltaR_lepj1", "deltaR_lepj2", "deltaR_lepj3", "deltaR_lepj4", "invmass_12", "invmass_13", "invmass_14", "invmass_23", "invmass_24", "invmass_34", "invmass_lepj1", "invmass_lepj2", "invmass_lepj3", "invmass_lepj4"});
+  df_bjet.Snapshot("dnn_input", "ttbb_ctag.root", {"signal", "category", "jet1_pt", "jet1_eta", "jet1_btag", "jet1_e", "jet2_pt", "jet2_eta", "jet2_btag", "jet2_e", "jet3_pt", "jet3_eta", "jet3_btag", "jet3_e", "jet4_pt", "jet4_eta", "jet4_btag", "jet4_e", "deltaR_12", "deltaR_13", "deltaR_14", "deltaR_23", "deltaR_24", "deltaR_34", "lepton_pt", "lepton_eta", "lepton_e", "deltaR_lepj1", "deltaR_lepj2", "deltaR_lepj3", "deltaR_lepj4", "invmass_12", "invmass_13", "invmass_14", "invmass_23", "invmass_24", "invmass_34", "invmass_lepj1", "invmass_lepj2", "invmass_lepj3", "invmass_lepj4", "jet1_CvsB", "jet1_CvsL", "jet2_CvsB", "jet2_CvsL", "jet3_CvsB", "jet3_CvsL", "jet4_CvsB", "jet4_CvsL"});
 //  df_cat0.Snapshot("catetory_0", "ttbb_invmasstest.root", {"category", "jet1_pt", "jet1_eta", "jet1_btag", "jet1_e", "jet2_pt", "jet2_eta", "jet2_btag", "jet2_e", "jet3_pt", "jet3_eta", "jet3_btag", "jet3_e", "jet4_pt", "jet4_eta", "jet4_btag", "jet4_e", "deltaR_12", "deltaR_13", "deltaR_14", "deltaR_23", "deltaR_24", "deltaR_34", "lepton_pt", "lepton_eta", "lepton_e", "deltaR_lepj1", "deltaR_lepj2", "deltaR_lepj3", "deltaR_lepj4"}, opts);
 //  df_cat1.Snapshot("catetory_1", "ttbb_invmasstest.root", {"category", "jet1_pt", "jet1_eta", "jet1_btag", "jet1_e", "jet2_pt", "jet2_eta", "jet2_btag", "jet2_e", "jet3_pt", "jet3_eta", "jet3_btag", "jet3_e", "jet4_pt", "jet4_eta", "jet4_btag", "jet4_e", "deltaR_12", "deltaR_13", "deltaR_14", "deltaR_23", "deltaR_24", "deltaR_34", "lepton_pt", "lepton_eta", "lepton_e", "deltaR_lepj1", "deltaR_lepj2", "deltaR_lepj3", "deltaR_lepj4"}, opts);
 //  df_cat2.Snapshot("catetory_2", "ttbb_invmasstest.root", {"category", "jet1_pt", "jet1_eta", "jet1_btag", "jet1_e", "jet2_pt", "jet2_eta", "jet2_btag", "jet2_e", "jet3_pt", "jet3_eta", "jet3_btag", "jet3_e", "jet4_pt", "jet4_eta", "jet4_btag", "jet4_e", "deltaR_12", "deltaR_13", "deltaR_14", "deltaR_23", "deltaR_24", "deltaR_34", "lepton_pt", "lepton_eta", "lepton_e", "deltaR_lepj1", "deltaR_lepj2", "deltaR_lepj3", "deltaR_lepj4"}, opts);
@@ -283,6 +291,4 @@ void ana_ttbb(){
 //  df_cat5.Snapshot("catetory_5", "ttbb_invmasstest.root", {"category", "jet1_pt", "jet1_eta", "jet1_btag", "jet1_e", "jet2_pt", "jet2_eta", "jet2_btag", "jet2_e", "jet3_pt", "jet3_eta", "jet3_btag", "jet3_e", "jet4_pt", "jet4_eta", "jet4_btag", "jet4_e", "deltaR_12", "deltaR_13", "deltaR_14", "deltaR_23", "deltaR_24", "deltaR_34", "lepton_pt", "lepton_eta", "lepton_e", "deltaR_lepj1", "deltaR_lepj2", "deltaR_lepj3", "deltaR_lepj4"}, opts);
 //  df_cat6.Snapshot("catetory_6", "ttbb_invmasstest.root", {"category", "jet1_pt", "jet1_eta", "jet1_btag", "jet1_e", "jet2_pt", "jet2_eta", "jet2_btag", "jet2_e", "jet3_pt", "jet3_eta", "jet3_btag", "jet3_e", "jet4_pt", "jet4_eta", "jet4_btag", "jet4_e", "deltaR_12", "deltaR_13", "deltaR_14", "deltaR_23", "deltaR_24", "deltaR_34", "lepton_pt", "lepton_eta", "lepton_e", "deltaR_lepj1", "deltaR_lepj2", "deltaR_lepj3", "deltaR_lepj4"}, opts);
 
-
-test nranch      
 }
