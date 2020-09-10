@@ -146,6 +146,34 @@ float deltaR (float jet1_pt, float jet1_eta, float jet1_phi, float jet1_e,      
     return delR;
 }
 
+//********** delta Phi
+float deltaPhi (float jet1_pt, float jet1_eta, float jet1_phi, float jet1_e,          //jet1
+              float jet2_pt, float jet2_eta, float jet2_phi, float jet2_e){         //jet2
+    
+    TLorentzVector jet1, jet2;
+
+    jet1.SetPtEtaPhiE(jet1_pt, jet1_eta, jet1_phi, jet1_e);
+    jet2.SetPtEtaPhiE(jet2_pt, jet2_eta, jet2_phi, jet2_e);
+
+    float delPhi = jet1.DeltaPhi(jet2);
+
+    return delPhi;
+}
+
+//********** delta Eta
+float deltaEta (float jet1_pt, float jet1_eta, float jet1_phi, float jet1_e,          //jet1
+              float jet2_pt, float jet2_eta, float jet2_phi, float jet2_e){         //jet2
+    
+    TLorentzVector jet1, jet2;
+
+    jet1.SetPtEtaPhiE(jet1_pt, jet1_eta, jet1_phi, jet1_e);
+    jet2.SetPtEtaPhiE(jet2_pt, jet2_eta, jet2_phi, jet2_e);
+
+    float delE = jet1.Eta() - jet2.Eta();
+
+    return delE;
+}
+
 //********** invariant mass
 float invmass (float jet1_pt, float jet1_eta, float jet1_phi, float jet1_e,
                float jet2_pt, float jet2_eta, float jet2_phi, float jet2_e){
@@ -162,7 +190,7 @@ float invmass (float jet1_pt, float jet1_eta, float jet1_phi, float jet1_e,
 
 
 
-void ana_ttbb_2(){
+void ana_ttbb(){
     ROOT::RDataFrame df("ttbbLepJets/tree", "/cms/ldap_home/sarakm0704/public/ttbb/V10_3/sync/TTLJ_PowhegPythia_ttbb.root");
 
     //********** Lepton cut
