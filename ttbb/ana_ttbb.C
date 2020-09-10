@@ -279,7 +279,6 @@ void ana_ttbb(){
   cout << "hi" << endl;
 
 
-master
   //snapshot
   ROOT::RDF::RSnapshotOptions opts;
   opts.fMode = "UPDATE";
