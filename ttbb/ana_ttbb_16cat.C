@@ -162,7 +162,7 @@ float invmass (float jet1_pt, float jet1_eta, float jet1_phi, float jet1_e,
 
 
 
-void ana_ttbb_2(){
+void ana_ttbb_16cat(){
     ROOT::RDataFrame df("ttbbLepJets/tree", "/cms/ldap_home/sarakm0704/public/ttbb/V10_3/sync/TTLJ_PowhegPythia_ttbb.root");
 
     //********** Lepton cut
