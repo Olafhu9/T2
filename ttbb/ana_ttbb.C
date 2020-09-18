@@ -123,11 +123,31 @@ vector <float> matchedjet_dR(vector <int> matchedjet_idx, rvec_f jet_pt, rvec_f 
 
 int getsize(vector <int> vec){
     int size = vec.size();
-//    cout << "*************************" << endl;
-//    cout << "size: " << size << endl;
-//    for (int i = 0; i < size; i++)
-//        cout << i << " " << vec[i] << endl;
     return size;
+}
+
+//********** delta R between particles
+float deltaR (TLorentzVector jet1, TLorentzVector jet2){
+    float dR = jet1.DeltaR(jet2);
+    return dR;
+}
+
+//********** invariant mass between paritcles
+float invmass (TLorentzVector jet1, TLorentzVector jet2){
+    float invariantmass = (jet1+jet2).M();
+    return invariantmass;
+}
+
+//********** delta Phi between particles
+float deltaPhi (TLorentzVector jet1, TLorentzVector jet2){
+    float dPhi = jet1.DeltaPhi(jet2);
+    return dPhi;
+}
+
+//********** delta Eta between particles
+float deltaEta (TLorentzVector jet1, TLorentzVector jet2){
+    float dEta = abs(jet1.Eta() - jet2.Eta());
+    return dEta;
 }
 
 
@@ -147,25 +167,28 @@ void ana_ttbb(){
     auto df_bjet = df_goodjet.Filter("nbjets_m >= 2", "Events with at least 2 medium b-jets")
                            //*** sort btag
                            .Define("sortjets", sortbtag, {"jet_pt", "jet_eta", "jet_deepJet"})
-                           //*** additional b-jets
+                           //*** jets->TLorentzVector
+                           .Define("lepton", jet_vector, {"lepton_pt", "lepton_eta", "lepton_phi", "lepton_e"})
                            .Define("addbjet1", jet_vector, {"addbjet1_pt", "addbjet1_eta", "addbjet1_phi", "addbjet1_e"})
                            .Define("addbjet2", jet_vector, {"addbjet2_pt", "addbjet2_eta", "addbjet2_phi", "addbjet2_e"})
+                           .Define("jet1", jet_vector, {"jet_pt[sortjets[0]]", "jet_eta[sortjets[0]]", "jet_phi[sortjets[0]]", "jet_e[sortjets[0]]"})
+                           .Define("jet2", jet_vector, {"jet_pt[sortjets[1]]", "jet_eta[sortjets[1]]", "jet_phi[sortjets[1]]", "jet_e[sortjets[1]]"})
+                           .Define("jet3", jet_vector, {"jet_pt[sortjets[2]]", "jet_eta[sortjets[2]]", "jet_phi[sortjets[2]]", "jet_e[sortjets[2]]"})
+                           .Define("jet4", jet_vector, {"jet_pt[sortjets[3]]", "jet_eta[sortjets[3]]", "jet_phi[sortjets[3]]", "jet_e[sortjets[3]]"})
+
                            //*** count # of mathed jets
                            .Define("count", count_matched, {"sortjets", "jet_pt", "jet_eta", "jet_phi", "jet_e", "jet_deepJet",
                                                             "addbjet1_pt", "addbjet1_eta", "addbjet1_phi", "addbjet1_e",
                                                             "addbjet2_pt", "addbjet2_eta", "addbjet2_phi", "addbjet2_e"})
-                           //*** matched jet index
+                           //*** matched jet index, pT, dR
                            .Define("matched_add1_idx", matchedjet, {"sortjets", "jet_pt", "jet_eta", "jet_phi", "jet_e", "addbjet1"})
                            .Define("matched_add2_idx", matchedjet, {"sortjets", "jet_pt", "jet_eta", "jet_phi", "jet_e", "addbjet2"})
                            .Define("nmatched1", getsize, {"matched_add1_idx"})
                            .Define("nmatched2", getsize, {"matched_add2_idx"})
-
-                         
                            .Define("matchedjet_pt1", matchedjet_pt, {"matched_add1_idx", "jet_pt", "jet_eta", "jet_phi", "jet_e"})
                            .Define("matchedjet_pt2", matchedjet_pt, {"matched_add2_idx", "jet_pt", "jet_eta", "jet_phi", "jet_e"})
                            .Define("matchedjet_dR1", matchedjet_dR, {"matched_add1_idx", "jet_pt", "jet_eta", "jet_phi", "jet_e", "addbjet1"})
                            .Define("matchedjet_dR2", matchedjet_dR, {"matched_add2_idx", "jet_pt", "jet_eta", "jet_phi", "jet_e", "addbjet2"})
-
 
                            //*** jet1
                            .Define("jet1_pt", "jet_pt[sortjets[0]]")
@@ -175,6 +198,7 @@ void ana_ttbb(){
                            .Define("jet1_btag", "jet_deepJet[sortjets[0]]")
                            .Define("jet1_CvsB", "jet_deepJetCvsB[sortjets[0]]")
                            .Define("jet1_CvsL", "jet_deepJetCvsL[sortjets[0]]")
+
                            //*** jet2
                            .Define("jet2_pt", "jet_pt[sortjets[1]]")
                            .Define("jet2_eta", "jet_eta[sortjets[1]]")
@@ -183,6 +207,7 @@ void ana_ttbb(){
                            .Define("jet2_btag", "jet_deepJet[sortjets[1]]")
                            .Define("jet2_CvsB", "jet_deepJetCvsB[sortjets[1]]")
                            .Define("jet2_CvsL", "jet_deepJetCvsL[sortjets[1]]")
+                           
                            //*** jet3
                            .Define("jet3_pt", "jet_pt[sortjets[2]]")
                            .Define("jet3_eta", "jet_eta[sortjets[2]]")
@@ -191,6 +216,7 @@ void ana_ttbb(){
                            .Define("jet3_btag", "jet_deepJet[sortjets[2]]")
                            .Define("jet3_CvsB", "jet_deepJetCvsB[sortjets[2]]")
                            .Define("jet3_CvsL", "jet_deepJetCvsL[sortjets[2]]")
+                           
                            //*** jet4
                            .Define("jet4_pt", "jet_pt[sortjets[3]]")
                            .Define("jet4_eta", "jet_eta[sortjets[3]]")
@@ -198,7 +224,31 @@ void ana_ttbb(){
                            .Define("jet4_e", "jet_e[sortjets[3]]")
                            .Define("jet4_btag", "jet_deepJet[sortjets[3]]")
                            .Define("jet4_CvsB", "jet_deepJetCvsB[sortjets[3]]")
-                           .Define("jet4_CvsL", "jet_deepJetCvsL[sortjets[3]]");
+                           .Define("jet4_CvsL", "jet_deepJetCvsL[sortjets[3]]")
+
+                           //*** dR
+                           .Define("dR12", deltaR, {"jet1", "jet2"})
+                           .Define("dR13", deltaR, {"jet1", "jet3"})
+                           .Define("dR14", deltaR, {"jet1", "jet4"})
+                           .Define("dR23", deltaR, {"jet2", "jet3"})
+                           .Define("dR24", deltaR, {"jet2", "jet4"})
+                           .Define("dR34", deltaR, {"jet3", "jet4"})
+                           .Define("dRlep1", deltaR, {"jet1", "lepton"})
+                           .Define("dRlep2", deltaR, {"jet2", "lepton"})
+                           .Define("dRlep3", deltaR, {"jet3", "lepton"})
+                           .Define("dRlep4", deltaR, {"jet4", "lepton"}) 
+
+                           //*** invmass
+                           .Define("invm12", invmass, {"jet1", "jet2"})
+                           .Define("invm13", invmass, {"jet1", "jet3"})
+                           .Define("invm14", invmass, {"jet1", "jet4"})
+                           .Define("invm23", invmass, {"jet2", "jet3"})
+                           .Define("invm24", invmass, {"jet2", "jet4"})
+                           .Define("invm34", invmass, {"jet3", "jet4"})
+                           .Define("invmlep1", invmass, {"jet1", "lepton"})
+                           .Define("invmlep2", invmass, {"jet2", "lepton"})
+                           .Define("invmlep3", invmass, {"jet3", "lepton"})
+                           .Define("invmlep4", invmass, {"jet4", "lepton"}) 
 
     auto df_matched1 = df_bjet.Filter("nmatched1 > 0", "Events with matched jet with add1");
     auto df_matched2 = df_bjet.Filter("nmatched2 > 0", "Events with matched jet with add2");
