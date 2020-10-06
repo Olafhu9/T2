@@ -7,8 +7,11 @@
 #include "TLegend.h"
 #include "Math/Vector4Dfwd.h"
 #include "TStyle.h"
+#include <iostream>
 #include <vector>
 #include <ROOT/RSnapshotOptions.hxx>
+#include <algorithm>
+#include <cmath>
 
 using namespace ROOT::VecOps;
 using rvec_f = RVec<float>;
@@ -79,6 +82,82 @@ int count_matched(rvec_i Idx, rvec_f jet_pt, rvec_f jet_eta, rvec_f jet_phi, rve
     return count;
 }
 
+//********* categorize
+int categorize (int count, vector <int> matched1, vector <int> matched2, RVec <int> sortjets){
+    
+    int cat = 6;
+    int min;
+    vector <int> index_out;
+
+    if (matched1.size() < 1 || matched2.size() < 1){
+        cat = 6;
+    }
+
+    else if (matched1.size() == 1 && matched2.size() == 1){
+        for (int i = 0; i < 4; i++){
+            if (matched1[0] == sortjets[i]) index_out.push_back(i); 
+            if (matched2[0] == sortjets[i]) index_out.push_back(i);
+        }
+    }else if (matched1.size() == 2 && matched2.size() == 1){
+        sort(matched1.begin(), matched1.end());
+
+        if (matched1[0] == matched2[0]){
+            for (int i = 0; i < 4; i++){
+                if (matched1[1] == sortjets[i]) index_out.push_back(i);
+                if (matched2[0] == sortjets[i]) index_out.push_back(i);
+            }
+        }else
+           for (int i = 0; i < 4; i++){
+                if (matched1[0] == sortjets[i]) index_out.push_back(i);
+                if (matched2[0] == sortjets[i]) index_out.push_back(i);
+           }
+    }else if (matched1.size() == 1 && matched2.size() == 2){
+        sort(matched2.begin(), matched2.end());
+
+        if (matched1[0] == matched2[0]){
+            for (int i = 0; i < 4; i++){
+                if (matched1[0] == sortjets[i]) index_out.push_back(i);
+                if (matched2[1] == sortjets[i]) index_out.push_back(i);
+            }
+        }else
+           for (int i = 0; i < 4; i++){
+                if (matched1[0] == sortjets[i]) index_out.push_back(i);
+                if (matched2[0] == sortjets[i]) index_out.push_back(i);
+           }
+    }else if (matched1.size() == 2 && matched2.size() == 2){
+        vector <int> matched;
+        matched.resize(matched1.size() + matched2.size());
+        auto itr = set_union(matched1.begin(), matched1.end(), matched2.begin(), matched2.end(), matched.begin());
+        matched.erase(itr, matched.end());
+        sort(matched.begin(), matched.end());
+        for (int i = 0; i < 4; i++){
+            if (matched[0] == sortjets[i]) index_out.push_back(i);
+            if (matched[1] == sortjets[i]) index_out.push_back(i);
+        }
+    }
+
+    int index;
+    int num = 0;
+    int signal_num = 0;
+    if (index_out.size() == 2){
+        for (int i = 0; i < 2; i++){
+            index = index_out[i];
+            num = TMath::Power(2, index);
+            signal_num = signal_num + num;
+        }
+        if (signal_num == 3) cat = 0;
+        else if (signal_num == 5) cat = 1;
+        else if (signal_num == 9) cat = 2;
+        else if (signal_num == 6) cat = 3;
+        else if (signal_num == 10) cat = 4;
+        else if (signal_num == 12) cat = 5;
+    }
+    else cat = 6;
+
+    return cat;
+}
+
+
 //********** matched jet index
 vector <int> matchedjet(rvec_i Idx, rvec_f jet_pt, rvec_f jet_eta, rvec_f jet_phi, rvec_f jet_e, TLorentzVector addbjet){
     
@@ -140,7 +219,7 @@ float invmass (TLorentzVector jet1, TLorentzVector jet2){
 
 //********** delta Phi between particles
 float deltaPhi (TLorentzVector jet1, TLorentzVector jet2){
-    float dPhi = jet1.DeltaPhi(jet2);
+    float dPhi = abs(jet1.DeltaPhi(jet2));
     return dPhi;
 }
 
@@ -152,7 +231,8 @@ float deltaEta (TLorentzVector jet1, TLorentzVector jet2){
 
 
 void ana_ttbb(){
-  ROOT::RDataFrame df("ttbbLepJets/tree", "/cms/ldap_home/sarakm0704/public/ttbb/V10_3/sync/TTLJ_PowhegPythia_ttbb.root");
+  ROOT::RDataFrame df("ttbbLepJets/tree", {"/cms/ldap_home/sarakm0704/public/ttbb/V10_3/sync/TTLJ_PowhegPythia_ttbb.root",
+                                           "/cms/ldap_home/sarakm0704/public/ttbb/V9_7/sync/TTLJ_PowhegPythia_ttbb.root"});
 
     //*** Lepton cut
     auto df_goodlepton = df.Filter("lepton_pt > 30 && abs(lepton_eta) < 2.4")
@@ -171,10 +251,6 @@ void ana_ttbb(){
                            .Define("lepton", jet_vector, {"lepton_pt", "lepton_eta", "lepton_phi", "lepton_e"})
                            .Define("addbjet1", jet_vector, {"addbjet1_pt", "addbjet1_eta", "addbjet1_phi", "addbjet1_e"})
                            .Define("addbjet2", jet_vector, {"addbjet2_pt", "addbjet2_eta", "addbjet2_phi", "addbjet2_e"})
-                           .Define("jet1", jet_vector, {"jet_pt[sortjets[0]]", "jet_eta[sortjets[0]]", "jet_phi[sortjets[0]]", "jet_e[sortjets[0]]"})
-                           .Define("jet2", jet_vector, {"jet_pt[sortjets[1]]", "jet_eta[sortjets[1]]", "jet_phi[sortjets[1]]", "jet_e[sortjets[1]]"})
-                           .Define("jet3", jet_vector, {"jet_pt[sortjets[2]]", "jet_eta[sortjets[2]]", "jet_phi[sortjets[2]]", "jet_e[sortjets[2]]"})
-                           .Define("jet4", jet_vector, {"jet_pt[sortjets[3]]", "jet_eta[sortjets[3]]", "jet_phi[sortjets[3]]", "jet_e[sortjets[3]]"})
 
                            //*** count # of mathed jets
                            .Define("count", count_matched, {"sortjets", "jet_pt", "jet_eta", "jet_phi", "jet_e", "jet_deepJet",
@@ -189,6 +265,9 @@ void ana_ttbb(){
                            .Define("matchedjet_pt2", matchedjet_pt, {"matched_add2_idx", "jet_pt", "jet_eta", "jet_phi", "jet_e"})
                            .Define("matchedjet_dR1", matchedjet_dR, {"matched_add1_idx", "jet_pt", "jet_eta", "jet_phi", "jet_e", "addbjet1"})
                            .Define("matchedjet_dR2", matchedjet_dR, {"matched_add2_idx", "jet_pt", "jet_eta", "jet_phi", "jet_e", "addbjet2"})
+
+                           //*** categorize
+                           .Define("category", categorize, {"count", "matched_add1_idx", "matched_add2_idx", "sortjets"})
 
                            //*** jet1
                            .Define("jet1_pt", "jet_pt[sortjets[0]]")
@@ -225,6 +304,12 @@ void ana_ttbb(){
                            .Define("jet4_btag", "jet_deepJet[sortjets[3]]")
                            .Define("jet4_CvsB", "jet_deepJetCvsB[sortjets[3]]")
                            .Define("jet4_CvsL", "jet_deepJetCvsL[sortjets[3]]")
+                           
+                           //*** TLorentzVector jets
+                           .Define("jet1", jet_vector, {"jet1_pt", "jet1_eta", "jet1_phi", "jet1_e"})
+                           .Define("jet2", jet_vector, {"jet2_pt", "jet2_eta", "jet2_phi", "jet2_e"})
+                           .Define("jet3", jet_vector, {"jet3_pt", "jet3_eta", "jet3_phi", "jet3_e"})
+                           .Define("jet4", jet_vector, {"jet4_pt", "jet4_eta", "jet4_phi", "jet4_e"})
 
                            //*** dR
                            .Define("dR12", deltaR, {"jet1", "jet2"})
@@ -237,7 +322,23 @@ void ana_ttbb(){
                            .Define("dRlep2", deltaR, {"jet2", "lepton"})
                            .Define("dRlep3", deltaR, {"jet3", "lepton"})
                            .Define("dRlep4", deltaR, {"jet4", "lepton"}) 
+                           
+                           //*** dEta
+                           .Define("dEta12", deltaEta, {"jet1", "jet2"})
+                           .Define("dEta13", deltaEta, {"jet1", "jet3"})
+                           .Define("dEta14", deltaEta, {"jet1", "jet4"})
+                           .Define("dEta23", deltaEta, {"jet2", "jet3"})
+                           .Define("dEta24", deltaEta, {"jet2", "jet4"})
+                           .Define("dEta34", deltaEta, {"jet3", "jet4"})
 
+                           //*** dPhi
+                           .Define("dPhi12", deltaPhi, {"jet1", "jet2"})
+                           .Define("dPhi13", deltaPhi, {"jet1", "jet3"})
+                           .Define("dPhi14", deltaPhi, {"jet1", "jet4"})
+                           .Define("dPhi23", deltaPhi, {"jet2", "jet3"})
+                           .Define("dPhi24", deltaPhi, {"jet2", "jet4"})
+                           .Define("dPhi34", deltaPhi, {"jet3", "jet4"})
+                           
                            //*** invmass
                            .Define("invm12", invmass, {"jet1", "jet2"})
                            .Define("invm13", invmass, {"jet1", "jet3"})
@@ -248,29 +349,29 @@ void ana_ttbb(){
                            .Define("invmlep1", invmass, {"jet1", "lepton"})
                            .Define("invmlep2", invmass, {"jet2", "lepton"})
                            .Define("invmlep3", invmass, {"jet3", "lepton"})
-                           .Define("invmlep4", invmass, {"jet4", "lepton"}) 
+                           .Define("invmlep4", invmass, {"jet4", "lepton"}); 
 
     auto df_matched1 = df_bjet.Filter("nmatched1 > 0", "Events with matched jet with add1");
     auto df_matched2 = df_bjet.Filter("nmatched2 > 0", "Events with matched jet with add2");
 
     cout << "hi" << endl;
 
-    auto h_matched1 = df_matched1.Histo2D({"h_matched1", "h_matched1", 100, 0, 0.4, 180, 20, 200}, "matchedjet_dR1", "matchedjet_pt1");
-    auto h_matched2 = df_matched2.Histo2D({"h_matched2", "h_matched2", 100, 0, 0.4, 180, 20, 200}, "matchedjet_dR2", "matchedjet_pt2"); 
-  //snapshot
+    auto h_matched1_ptdR = df_matched1.Histo2D({"h_matched1", "h_matched1", 100, 0, 0.4, 180, 20, 200}, "matchedjet_dR1", "matchedjet_pt1");
+    auto h_matched2_ptdR = df_matched2.Histo2D({"h_matched2", "h_matched2", 100, 0, 0.4, 180, 20, 200}, "matchedjet_dR2", "matchedjet_pt2"); 
+  
+    //********** snapshot
   ROOT::RDF::RSnapshotOptions opts;
   opts.fMode = "UPDATE";
   
-  //df_bjet.Snapshot("dnn_input", "ttbb_pt20_test5.root", {"nmatched1", "count", "matched_add1_idx", "matched_add2_idx"});
-    df_bjet.Snapshot("dnn_input", "ttbb_pt20_test6.root", {"nmatched1", "nmatched2", "count", "matched_add1_idx", "matched_add2_idx", "matchedjet_pt1", "matchedjet_pt2", "matchedjet_dR1", "matchedjet_dR2"});
-    df_matched1.Snapshot("add1", "ttbb_pt20_test6.root", {"count", "matched_add1_idx", "matched_add2_idx", "matchedjet_pt1", "matchedjet_pt2", "matchedjet_dR1", "matchedjet_dR2"}, opts);
-    df_matched2.Snapshot("add2", "ttbb_pt20_test6.root", {"count", "matched_add1_idx", "matched_add2_idx", "matchedjet_pt1", "matchedjet_pt2", "matchedjet_dR1", "matchedjet_dR2"}, opts);
+    //df_bjet.Snapshot("dnn_input", "ttbb_pt20.root", {"category", "count", "jet1_pt", "jet1_eta", "jet1_phi", "jet1_e", "jet1_btag", "jet1_CvsB", "jet1_CvsL", "jet2_pt", "jet2_eta", "jet2_phi", "jet2_e", "jet2_btag", "jet2_CvsB", "jet2_CvsL", "jet3_pt", "jet3_eta", "jet3_phi", "jet3_e", "jet3_btag", "jet3_CvsB", "jet3_CvsL", "jet4_pt", "jet4_eta", "jet4_phi", "jet4_e", "jet4_btag", "jet4_CvsB", "jet4_CvsL", "dR12", "dR13", "dR14", "dR23", "dR24", "dR34", "dRlep1", "dRlep2", "dRlep3", "dRlep4", "dEta12", "dEta13", "dEta14", "dEta23", "dEta24", "dEta34", "dPhi12", "dPhi13", "dPhi14", "dPhi23", "dPhi24", "dPhi34", "invm12", "invm13", "invm14", "invm23", "invm24", "invm34", "invmlep1", "invmlep2", "invmlep3", "invmlep4"});
+    df_bjet.Snapshot("dnn_input", "ttbb_pt20_merged.root", {"category", "count", "jet1_pt", "jet1_eta", "jet1_phi", "jet1_e", "jet1_btag", "jet1_CvsB", "jet1_CvsL", "jet2_pt", "jet2_eta", "jet2_phi", "jet2_e", "jet2_btag", "jet2_CvsB", "jet2_CvsL", "jet3_pt", "jet3_eta", "jet3_phi", "jet3_e", "jet3_btag", "jet3_CvsB", "jet3_CvsL", "jet4_pt", "jet4_eta", "jet4_phi", "jet4_e", "jet4_btag", "jet4_CvsB", "jet4_CvsL", "dR12", "dR13", "dR14", "dR23", "dR24", "dR34", "dRlep1", "dRlep2", "dRlep3", "dRlep4", "dEta12", "dEta13", "dEta14", "dEta23", "dEta24", "dEta34", "dPhi12", "dPhi13", "dPhi14", "dPhi23", "dPhi24", "dPhi34", "invm12", "invm13", "invm14", "invm23", "invm24", "invm34", "invmlep1", "invmlep2", "invmlep3", "invmlep4"});
 
 
-    TFile f("ttbb_pt20_test6.root", "UPDATE");
 
-        plot(h_matched1, "h_matched1");
-        plot(h_matched2, "h_matched2");
-
-    f.Close();
+//    TFile f("ttbb_pt20.root", "UPDATE");
+//
+//        plot(h_matched1_ptdR, "h_matched1_ptdR");
+//        plot(h_matched2_ptdR, "h_matched2_ptdR");
+//
+//    f.Close();
 }
